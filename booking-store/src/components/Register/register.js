@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
-import { Form, FormGroup, Label, Input,Container, Row, Col ,Button} from 'reactstrap';
-import './register.scss';
+import { Form, FormGroup, Label, Input, Container, Row, Col, Button } from 'reactstrap';
 import { Link } from 'react-router-dom';
+import {connect} from 'react-redux'
+import { signUserUp } from '../../store/action';
+import './register.scss';
+
 
 class Register extends Component {
  state = {
@@ -9,7 +12,8 @@ class Register extends Component {
   lastName:'',
   email: '',
   phone: '',
-  password:''
+   password: '',
+   formError: false
  }
  handleFirstName = (e) => {
   this.setState({firstName:e.target.value})
@@ -26,11 +30,24 @@ class Register extends Component {
  handlePassword = (e) => {
   this.setState({password:e.target.value})
  }
- handleSubmit = () => {
-  
- }
+  handleSubmit = (e) => {
+    this.props.signUserUp(this.state);
+    e.preventDefault();
+    const{history}=this.props
+    if (this.state.firstName === '' || this.state.lastName === '' || this.state.email === '' || this.state.password === '' || this.state.phone === '') {
+      this.setState({ formError: true });
+    } else {
+      this.setState({formError:false})
+      localStorage.setItem('firstName', this.state.firstName);
+      localStorage.setItem('lastName', this.state.lastName);
+      localStorage.setItem('email', this.state.email);
+      localStorage.setItem('password', this.state.password);
+      localStorage.setItem('phone', this.state.phone);
+      history.push('/login')
+    }
+  }
  render() {
-  const { firstName,lastName,email,password,phone} = this.state;
+  const { firstName,lastName,email,password,phone,formError} = this.state;
   return (
    <div className="register">
     <Container>
@@ -64,13 +81,18 @@ class Register extends Component {
          <FormGroup row>
          <Label for="password" sm={6}>Password </Label>
           <Input type="password" name="password" id="password" placeholder="Enter Your Password" sm={6} value={password} onChange={this.handlePassword}/>
-         </FormGroup>
+                </FormGroup>
+                {formError &&
+                <p className="error">
+                    Fill all the input fields please.
+                </p>
+              }
          <FormGroup row>
           <Button  color="primary" className="submit" onClick={this.handleSubmit}>Submit</Button>
           </FormGroup>
 </Form>
       </div>
-      </Col>
+          </Col>
      </Row>
      <Row>
       <Col>
@@ -84,4 +106,9 @@ class Register extends Component {
   )
  }
 }
-export default Register;
+const mapDispatchToProps = (dispatch) => {
+  return {
+      signUserUp: (userInfo) => dispatch(signUserUp(userInfo))
+  }
+}
+export default connect(null, mapDispatchToProps)(Register);
